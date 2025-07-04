@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Redistribution Analysis Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .quick-controls {
+            margin-bottom: 20px;
+        }
+        .quick-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        .quick-section h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 14px;
+        }
+        .quick-btn {
+            padding: 6px 12px;
+            margin: 2px;
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            min-width: 80px;
+        }
+        .quick-btn:hover {
+            background: #138496;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        .control-group label {
+            display: inline-block;
+            width: 200px;
+            font-weight: bold;
+        }
+        .control-group input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .control-group button {
+            padding: 8px 15px;
+            margin-left: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .control-group button:hover {
+            background: #0056b3;
+        }
+        .reset-btn {
+            background: #28a745 !important;
+            font-size: 16px;
+            padding: 10px 20px;
+            margin-top: 15px;
+        }
+        .reset-btn:hover {
+            background: #1e7e34 !important;
+        }
+        .models-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .model {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .model-header {
+            background: #ffd700;
+            color: #333;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .model-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .model-table th, .model-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .model-table th {
+            background: #1e3a8a;
+            color: white;
+            font-weight: bold;
+        }
+        .cat-a { background: #90EE90; }
+        .cat-b { background: #FFD700; }
+        .cat-c { background: #FFA500; }
+        .cat-d { background: #FF6B6B; }
+        .total-row { background: #f0f0f0; font-weight: bold; }
+        .state-avg-row { background: #4a90e2; color: white; font-weight: bold; }
+        .change-indicator {
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        .summary {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .summary h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .summary-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .summary-item strong {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Block Redistribution Analysis Tool</h1>
+        
+        <div class="controls">
+            <h3>Quick Action Controls (10 Blocks Each)</h3>
+            <div class="quick-controls">
+                <div class="quick-section">
+                    <h4>From D Category:</h4>
+                    <button class="quick-btn" onclick="moveBlocksQuick('D', 'A', 10)">D → A (10)</button>
+                    <button class="quick-btn" onclick="moveBlocksQuick('D', 'B', 10)">D → B (10)</button>
+                    <button class="quick-btn" onclick="moveBlocksQuick('D', 'C', 10)">D → C (10)</button>
+                </div>
+                <div class="quick-section">
+                    <h4>From C Category:</h4>
+                    <button class="quick-btn" onclick="moveBlocksQuick('C', 'A', 10)">C → A (10)</button>
+                    <button class="quick-btn" onclick="moveBlocksQuick('C', 'B', 10)">C → B (10)</button>
+                    <button class="quick-btn" onclick="moveBlocksQuick('C', 'D', 10)">C → D (10)</button>
+                </div>
+                <div class="quick-section">
+                    <h4>From B Category:</h4>
+                    <button class="quick-btn" onclick="moveBlocksQuick('B', 'A', 10)">B → A (10)</button>
+                    <button class="quick-btn" onclick="moveBlocksQuick('B', 'C', 10)">B → C (10)</button>
+                    <button class="quick-btn" onclick="moveBlocksQuick('B', 'D', 10)">B → D (10)</button>
+                </div>
+                <div class="quick-section">
+                    <h4>From A Category:</h4>
+                    <button class="quick-btn" onclick="moveBlocksQuick('A', 'B', 10)">A → B (10)</button>
+                    <button class="quick-btn" onclick="moveBlocksQuick('A', 'C', 10)">A → C (10)</button>
+                    <button class="quick-btn" onclick="moveBlocksQuick('A', 'D', 10)">A → D (10)</button>
+                </div>
+            </div>
+            
+            <button class="reset-btn" onclick="resetToOriginal()">Reset to Original</button>
+        </div>
+
+        <div class="models-container">
+            <div class="model">
+                <div class="model-header">Model 1</div>
+                <table class="model-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Block Count</th>
+                            <th>Assumed NIPUN %</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody id="model1-body">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="model">
+                <div class="model-header">Model 2</div>
+                <table class="model-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Block Count</th>
+                            <th>Avg NIPUN %</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody id="model2-body">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="model">
+                <div class="model-header">Model 3</div>
+                <table class="model-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Block Count</th>
+                            <th>Avg NIPUN %</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody id="model3-body">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="model">
+                <div class="model-header">Model 4</div>
+                <table class="model-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Block Count</th>
+                            <th>Avg NIPUN %</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody id="model4-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h3>State Average Changes Summary</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <strong id="model1-change">0.00%</strong>
+                    <div>Model 1 Change</div>
+                </div>
+                <div class="summary-item">
+                    <strong id="model2-change">0.00%</strong>
+                    <div>Model 2 Change</div>
+                </div>
+                <div class="summary-item">
+                    <strong id="model3-change">0.00%</strong>
+                    <div>Model 3 Change</div>
+                </div>
+                <div class="summary-item">
+                    <strong id="model4-change">0.00%</strong>
+                    <div>Model 4 Change</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Original data
+        const originalData = {
+            model1: {
+                A: { blocks: 14, nipun: 87.5 },
+                B: { blocks: 208, nipun: 62.5 },
+                C: { blocks: 502, nipun: 37.5 },
+                D: { blocks: 222, nipun: 12.5 }
+            },
+            model2: {
+                A: { blocks: 5, nipun: 80.86 },
+                B: { blocks: 22, nipun: 57.79 },
+                C: { blocks: 621, nipun: 32.47 },
+                D: { blocks: 321, nipun: 19.22 }
+            },
+            model3: {
+                A: { blocks: 67, nipun: 86.13 },
+                B: { blocks: 309, nipun: 59.76 },
+                C: { blocks: 467, nipun: 37.88 },
+                D: { blocks: 212, nipun: 12.12 }
+            },
+            model4: {
+                A: { blocks: 136, nipun: 85.63 },
+                B: { blocks: 408, nipun: 60.49 },
+                C: { blocks: 343, nipun: 39.48 },
+                D: { blocks: 119, nipun: 10.71 }
+            }
+        };
+
+        // Current data (copy of original)
+        let currentData = JSON.parse(JSON.stringify(originalData));
+
+        // Calculate state average for a model
+        function calculateStateAverage(modelData) {
+            let totalContribution = 0;
+            let totalBlocks = 0;
+            
+            for (let category in modelData) {
+                const contribution = modelData[category].blocks * modelData[category].nipun;
+                totalContribution += contribution;
+                totalBlocks += modelData[category].blocks;
+            }
+            
+            return totalContribution / totalBlocks;
+        }
+
+        // Get original state averages
+        const originalStateAvgs = {
+            model1: calculateStateAverage(originalData.model1),
+            model2: calculateStateAverage(originalData.model2),
+            model3: calculateStateAverage(originalData.model3),
+            model4: calculateStateAverage(originalData.model4)
+        };
+
+        // Render a model table
+        function renderModel(modelName, modelData) {
+            const tbody = document.getElementById(modelName.toLowerCase() + '-body');
+            tbody.innerHTML = '';
+            
+            const categories = ['A', 'B', 'C', 'D'];
+            let totalBlocks = 0;
+            let totalContribution = 0;
+            
+            categories.forEach(cat => {
+                const data = modelData[cat];
+                const contribution = data.blocks * data.nipun;
+                totalBlocks += data.blocks;
+                totalContribution += contribution;
+                
+                const row = document.createElement('tr');
+                row.className = 'cat-' + cat.toLowerCase();
+                row.innerHTML = `
+                    <td>${cat}</td>
+                    <td>${data.blocks}</td>
+                    <td>${data.nipun.toFixed(2)}</td>
+                    <td>${contribution.toFixed(2)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Total row
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `
+                <td>Total</td>
+                <td>${totalBlocks}</td>
+                <td>—</td>
+                <td>${totalContribution.toFixed(2)}</td>
+            `;
+            tbody.appendChild(totalRow);
+            
+            // State average row
+            const stateAvg = totalContribution / totalBlocks;
+            const originalAvg = originalStateAvgs[modelName.toLowerCase()];
+            const change = stateAvg - originalAvg;
+            const changeText = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
+            const changeClass = change >= 0 ? 'positive' : 'negative';
+            
+            const stateAvgRow = document.createElement('tr');
+            stateAvgRow.className = 'state-avg-row';
+            stateAvgRow.innerHTML = `
+                <td>State Avg NIPUN %</td>
+                <td>—</td>
+                <td>—</td>
+                <td>${stateAvg.toFixed(2)}% <span class="change-indicator ${changeClass}">(${changeText})</span></td>
+            `;
+            tbody.appendChild(stateAvgRow);
+        }
+
+        // Update summary
+        function updateSummary() {
+            const models = ['model1', 'model2', 'model3', 'model4'];
+            models.forEach(model => {
+                const currentAvg = calculateStateAverage(currentData[model]);
+                const originalAvg = originalStateAvgs[model];
+                const change = currentAvg - originalAvg;
+                const changeText = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
+                const changeClass = change >= 0 ? 'positive' : 'negative';
+                
+                const element = document.getElementById(model + '-change');
+                element.textContent = changeText;
+                element.className = changeClass;
+            });
+        }
+
+        // Move blocks between categories (quick action)
+        function moveBlocksQuick(fromCategory, toCategory, amount) {
+            // Check if enough blocks available in all models
+            const models = ['model1', 'model2', 'model3', 'model4'];
+            for (let model of models) {
+                if (currentData[model][fromCategory].blocks < amount) {
+                    alert(`Not enough blocks in category ${fromCategory} for ${model}. Available: ${currentData[model][fromCategory].blocks}`);
+                    return;
+                }
+            }
+            
+            // Perform the move in all models
+            models.forEach(model => {
+                currentData[model][fromCategory].blocks -= amount;
+                currentData[model][toCategory].blocks += amount;
+            });
+            
+            // Re-render all models
+            renderAll();
+        }
+
+        // Move blocks between categories (custom amount) - REMOVED
+        // function moveBlocks(fromCategory, toCategory) {
+        //     const inputId = fromCategory.toLowerCase() + '-to-' + toCategory.toLowerCase();
+        //     const amount = parseInt(document.getElementById(inputId).value);
+        //     
+        //     if (!amount || amount <= 0) {
+        //         alert('Please enter a valid number of blocks to move');
+        //         return;
+        //     }
+        //     
+        //     // Check if enough blocks available in all models
+        //     const models = ['model1', 'model2', 'model3', 'model4'];
+        //     for (let model of models) {
+        //         if (currentData[model][fromCategory].blocks < amount) {
+        //             alert(`Not enough blocks in category ${fromCategory} for ${model}. Available: ${currentData[model][fromCategory].blocks}`);
+        //             return;
+        //         }
+        //     }
+        //     
+        //     // Perform the move in all models
+        //     models.forEach(model => {
+        //         currentData[model][fromCategory].blocks -= amount;
+        //         currentData[model][toCategory].blocks += amount;
+        //     });
+        //     
+        //     // Clear input
+        //     document.getElementById(inputId).value = '';
+        //     
+        //     // Re-render all models
+        //     renderAll();
+        // }
+
+        // Reset to original data
+        function resetToOriginal() {
+            currentData = JSON.parse(JSON.stringify(originalData));
+            renderAll();
+        }
+
+        // Render all models
+        function renderAll() {
+            renderModel('Model1', currentData.model1);
+            renderModel('Model2', currentData.model2);
+            renderModel('Model3', currentData.model3);
+            renderModel('Model4', currentData.model4);
+            updateSummary();
+        }
+
+        // Initial render
+        renderAll();
+    </script>
+</body>
+</html>
