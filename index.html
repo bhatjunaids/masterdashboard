@@ -419,7 +419,30 @@
 
         // Move blocks between categories (quick action)
         function moveBlocksQuick(fromCategory, toCategory, amount) {
-            // Check if enough blocks available in all models
+            // Special handling for Model 2: B to A moves
+            if (fromCategory === 'B' && toCategory === 'A') {
+                // Check if Model 2 has enough blocks in B
+                if (currentData.model2.B.blocks < amount) {
+                    const shortage = amount - currentData.model2.B.blocks;
+                    
+                    // Check if we can compensate by moving from C to B in Model 2
+                    if (currentData.model2.C.blocks >= shortage) {
+                        // Instead of B to A, do C to B move
+                        currentData.model2.C.blocks -= shortage;
+                        currentData.model2.B.blocks += shortage;
+                        console.log(`Model 2: Moved ${shortage} blocks from C to B instead of B to A due to insufficient B blocks`);
+                        
+                        // Re-render all models
+                        renderAll();
+                        return; // Exit here, don't proceed with B to A
+                    } else {
+                        alert(`Model 2: Not enough blocks in B (${currentData.model2.B.blocks}) and C (${currentData.model2.C.blocks}) to facilitate the move`);
+                        return;
+                    }
+                }
+            }
+            
+            // Regular check for other models
             const models = ['model1', 'model2', 'model3', 'model4'];
             for (let model of models) {
                 if (currentData[model][fromCategory].blocks < amount) {
